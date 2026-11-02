@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to the Parlour</title>
+  <style>
+    :root {
+      --bg-dark: #08070a;
+      --card-bg: rgba(16, 13, 20, 0.88);
+      --pink-glow: #ff75a8;
+      --pink-accent: #e05286;
+      --dusty-pink: #a85876;
+      --text-main: #f0e6ed;
+      --text-sub: #c4b5c2;
+      --border-color: rgba(224, 82, 134, 0.3);
+      --gold-glow: rgba(212, 175, 55, 0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 50% 15%, rgba(224, 82, 134, 0.18), transparent 60%),
+        radial-gradient(circle at 80% 85%, rgba(168, 88, 118, 0.12), transparent 50%);
+      color: var(--text-main);
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: hidden;
+      padding: 20px;
+    }
+
+    .screen {
+      display: none;
+      width: 100%;
+      max-width: 950px;
+      animation: fadeIn 0.8s ease forwards;
+    }
+
+    .screen.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .shimmer-effect {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 50%, rgba(255, 117, 168, 0.08), transparent 50%);
+      z-index: 1;
+    }
+
+    /* --- STAGE 1: ENVELOPE --- */
+    .envelope-wrapper {
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .envelope {
+      width: 320px;
+      height: 220px;
+      background: #120e17;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 0 25px rgba(224, 82, 134, 0.25);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .envelope:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.95), 0 0 30px rgba(224, 82, 134, 0.4);
+    }
+
+    .envelope::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      width: 0;
+      height: 0;
+      border-left: 160px solid transparent;
+      border-right: 160px solid transparent;
+      border-top: 110px solid #1a1422;
+    }
+
+    .wax-seal {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #a85876, #e05286);
+      border-radius: 50%;
+      position: absolute;
+      z-index: 3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.6), 0 0 15px var(--pink-glow);
+      border: 2px solid #ffb3d1;
+      font-size: 22px;
+      color: #120e17;
+    }
+
+    .click-prompt {
+      margin-top: 25px;
+      font-size: 0.85rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--pink-accent);
+      text-shadow: 0 0 10px rgba(224, 82, 134, 0.6);
+      animation: pulse 2s infinite;
+    }
+
+    .dissolve-out {
+      animation: shimmerDissolve 0.9s forwards ease-in-out;
+    }
+
+    @keyframes shimmerDissolve {
+      0% { opacity: 1; transform: scale(1); filter: blur(0px); }
+      50% { opacity: 0.8; transform: scale(1.08); filter: blur(4px) brightness(1.8); box-shadow: 0 0 50px var(--pink-glow); }
+      100% { opacity: 0; transform: scale(0.8); filter: blur(12px); }
+    }
+
+    /* --- COMMON CARD CONTAINER --- */
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 35px;
+      width: 100%;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(224, 82, 134, 0.1);
+      position: relative;
+      z-index: 2;
+    }
+
+    .title-header {
+      font-size: 2rem;
+      font-weight: 300;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--pink-accent), transparent);
+      margin: 20px 0;
+    }
+
+    /* --- BUTTONS & INPUTS --- */
+    .btn-parlour {
+      background: linear-gradient(135deg, rgba(224, 82, 134, 0.25), rgba(168, 88, 118, 0.45));
+      border: 1px solid var(--pink-accent);
+      color: var(--text-main);
+      padding: 13px 30px;
+      font-size: 0.9rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 15px rgba(224, 82, 134, 0.2);
+      display: block;
+      margin: 25px auto 0 auto;
+      text-decoration: none;
+      text-align: center;
+    }
+
+    .btn-parlour:hover {
+      background: var(--pink-accent);
+      color: #08070a;
+      box-shadow: 0 0 25px var(--pink-glow);
+      transform: translateY(-2px);
+    }
+
+    .input-field {
+      width: 100%;
+      max-width: 320px;
+      background: rgba(8, 7, 10, 0.75);
+      border: 1px solid var(--border-color);
+      padding: 14px 20px;
+      border-radius: 25px;
+      color: var(--text-main);
+      font-size: 1rem;
+      text-align: center;
+      outline: none;
+      margin: 25px auto 10px auto;
+      display: block;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .input-field:focus {
+      border-color: var(--pink-glow);
+      box-shadow: 0 0 15px rgba(255, 117, 168, 0.3);
+    }
+
+    /* --- STAGE 2: INSTAGRAM PROFILE STYLE --- */
+    .ig-profile-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 30px;
+      margin-bottom: 20px;
+    }
+
+    .ig-avatar-wrapper {
+      position: relative;
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      padding: 3px;
+      background: linear-gradient(45deg, #e05286, #ff75a8, #a85876);
+      flex-shrink: 0;
+    }
+
+    .ig-avatar {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #141118;
+      border: 3px solid #08070a;
+    }
+
+    .ig-details {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex-grow: 1;
+    }
+
+    .ig-username-row {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .ig-username {
+      font-size: 1.4rem;
+      font-weight: 400;
+      letter-spacing: 1px;
+    }
+
+    .ig-badge {
+      background: rgba(224, 82, 134, 0.2);
+      border: 1px solid var(--pink-accent);
+      color: var(--pink-glow);
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .ig-stats {
+      display: flex;
+      gap: 25px;
+      font-size: 0.95rem;
+    }
+
+    .ig-stats span {
+      font-weight: 600;
+      color: var(--pink-glow);
+    }
+
+    .ig-bio {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: var(--text-sub);
+    }
+
+    .ig-links-container {
+      display: flex;
+      gap: 12px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+
+    .btn-social {
+      flex: 1;
+      min-width: 140px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 10px 16px;
+      font-size: 0.8rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      border-radius: 20px;
+      text-decoration: none;
+      text-align: center;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-social:hover {
+      background: rgba(224, 82, 134, 0.25);
+      border-color: var(--pink-glow);
+      box-shadow: 0 0 12px rgba(255, 117, 168, 0.3);
+      color: #fff;
+    }
+
+    /* --- STAGE 4: ARCANA TAROT CARD DECK --- */
+    .controls-bar {
+      display: flex;
+      justify-content: center;
+      margin: 15px 0 25px 0;
+    }
+
+    .btn-toggle-deck {
+      background: rgba(224, 82, 134, 0.15);
+      border: 1px solid var(--pink-accent);
+      color: var(--pink-glow);
+      padding: 10px 24px;
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-toggle-deck:hover {
+      background: var(--pink-accent);
+      color: #08070a;
+      box-shadow: 0 0 20px var(--pink-glow);
+    }
+
+    .bot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 25px;
+      width: 100%;
+      perspective: 1200px;
+    }
+
+    /* Arcana Card Item */
+    .arcana-card {
+      width: 100%;
+      height: 380px;
+      perspective: 1000px;
+      cursor: pointer;
+    }
+
+    .arcana-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transform-style: preserve-3d;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    }
+
+    .arcana-card.flipped .arcana-card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      border-radius: 16px;
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+    }
+
+    /* CARD BACK (FLIPPED DOWN) */
+    .card-back {
+      background: linear-gradient(145deg, #120e17, #0a080d);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      box-shadow: inset 0 0 15px rgba(224, 82, 134, 0.15);
+    }
+
+    .card-back-pattern {
+      width: 88%;
+      height: 92%;
+      border: 1px solid rgba(224, 82, 134, 0.3);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      background: radial-gradient(circle, rgba(224, 82, 134, 0.05) 0%, transparent 70%);
+    }
+
+    .card-back-symbol {
+      font-size: 2.8rem;
+      color: var(--pink-glow);
+      text-shadow: 0 0 15px var(--pink-glow);
+      animation: pulse 3s infinite;
+    }
+
+    .card-back-text {
+      font-size: 0.75rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--dusty-pink);
+      margin-top: 15px;
+    }
+
+    /* CARD FRONT (FLIPPED UP) */
+    .card-front {
+      background: rgba(14, 11, 18, 0.95);
+      transform: rotateY(180deg);
+      display: flex;
+      flex-direction: column;
+      padding: 15px;
+      text-align: left;
+    }
+
+    .card-front::after {
+      content: '';
+      position: absolute;
+      top: 6px; left: 6px; right: 6px; bottom: 6px;
+      border: 1px solid rgba(224, 82, 134, 0.2);
+      border-radius: 10px;
+      pointer-events: none;
+    }
+
+    .bot-thumb {
+      width: 100%;
+      height: 190px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid rgba(224, 82, 134, 0.25);
+      background: #141118;
+    }
+
+    .bot-name {
+      font-size: 1.1rem;
+      color: var(--pink-glow);
+      margin: 10px 0 3px 0;
+      font-weight: 500;
+    }
+
+    .bot-tag {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--dusty-pink);
+      margin-bottom: 8px;
+    }
+
+    .bot-desc {
+      font-size: 0.8rem;
+      line-height: 1.4;
+      color: var(--text-sub);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+    }
+
+    .card-tap-hint {
+      margin-top: auto;
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--pink-accent);
+      text-align: center;
+      padding-top: 5px;
+    }
+
+    /* --- MAGNIFIED ARCANA MODAL OVERLAY --- */
+    .arcana-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(5, 4, 7, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      animation: modalFadeIn 0.4s ease forwards;
+    }
+
+    .arcana-modal.active {
+      display: flex;
+    }
+
+    .modal-card-content {
+      background: var(--card-bg);
+      border: 1px solid var(--pink-accent);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 440px;
+      padding: 30px;
+      box-shadow: 0 0 50px rgba(224, 82, 134, 0.35);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      animation: modalScaleUp 0.4s ease forwards;
+    }
+
+    .modal-card-content::after {
+      content: '';
+      position: absolute;
+      top: 10px; left: 10px; right: 10px; bottom: 10px;
+      border: 1px solid rgba(224, 82, 134, 0.2);
+      border-radius: 14px;
+      pointer-events: none;
+    }
+
+    .modal-close-btn {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 1.8rem;
+      color: var(--text-sub);
+      cursor: pointer;
+      transition: color 0.3s;
+      z-index: 10;
+    }
+
+    .modal-close-btn:hover {
+      color: var(--pink-glow);
+    }
+
+    .modal-img {
+      width: 100%;
+      max-height: 280px;
+      object-fit: cover;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 20px;
+    }
+
+    .modal-name {
+      font-size: 1.6rem;
+      color: var(--pink-glow);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .modal-tag {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--dusty-pink);
+      margin-bottom: 15px;
+    }
+
+    .modal-desc {
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: var(--text-main);
+      margin-bottom: 25px;
+      font-weight: 300;
+    }
+
+    .btn-modal-chat {
+      background: linear-gradient(135deg, #a85876, #e05286);
+      color: #08070a;
+      padding: 12px 35px;
+      font-size: 0.9rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 600;
+      border-radius: 30px;
+      text-decoration: none;
+      box-shadow: 0 0 20px var(--pink-glow);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      z-index: 5;
+    }
+
+    .btn-modal-chat:hover {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 0 30px var(--pink-glow);
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes modalScaleUp {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
+    @media (max-width: 600px) {
+      .ig-profile-header {
+        flex-direction: column;
+        text-align: center;
+      }
+      .ig-username-row, .ig-stats, .ig-links-container {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="shimmer-effect"></div>
+
+  <!-- STAGE 1: ENVELOPE -->
+  <div class="screen active" id="screen1">
+    <div class="envelope-wrapper" id="envelopeBtn">
+      <div class="envelope">
+        <div class="wax-seal">✦</div>
+      </div>
+      <div class="click-prompt">Click to unseal</div>
+    </div>
+  </div>
+
+  <!-- STAGE 2: INSTAGRAM-STYLE 'GET TO KNOW ME' -->
+  <div class="screen" id="screen2">
+    <div class="card">
+      <div class="ig-profile-header">
+        <div class="ig-avatar-wrapper">
+          <img src="https://i.postimg.cc/MK9gVkq5/Dreamy-Pink-Rose-Boudoir-Fantasy.png" alt="Mira Profile Avatar" class="ig-avatar">
+        </div>
+        <div class="ig-details">
+          <div class="ig-username-row">
+            <h2 class="ig-username">_lovelorn_uwu</h2>
+            <span class="ig-badge">Creator</span>
+          </div>
+          <div class="ig-stats">
+            <div><span>14</span> bots</div>
+            <div><span>∞</span> stories</div>
+            <div><span>Arcana</span> vibe</div>
+          </div>
+          <div class="ig-bio">
+            <strong>Mira | she/her</strong><br>
+            INFP • student • artist<br>
+            chronic overthinker
+          </div>
+
+          <div class="ig-links-container">
+            <a href="https://www.instagram.com/_lovelorn_uwu/#" target="_blank" class="btn-social">
+              <span>✦</span> Instagram
+            </a>
+            <a href="https://janitorai.com/profiles/ad409044-66ff-4fb4-8d93-50a62a9e52ff_profile-of-lovelorn" target="_blank" class="btn-social">
+              <span>❖</span> Janitor AI Profile
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <button class="btn-parlour" id="toGatekeeperBtn">Visit the Parlour ✦</button>
+    </div>
+  </div>
+
+  <!-- STAGE 3: GATEKEEPER / ENTER NAME -->
+  <div class="screen" id="screen3">
+    <div class="card" style="text-align: center;">
+      <h1 class="title-header">Who enters the Parlour?</h1>
+      <div class="divider"></div>
+      <p style="color: var(--text-sub); font-weight: 300;">
+        Leave your name at the threshold before stepping into the archive.
+      </p>
+
+      <input type="text" id="visitorNameInput" class="input-field" placeholder="Enter your name..." autocomplete="off">
+      <button class="btn-parlour" id="enterArchiveBtn">Step Inside</button>
+    </div>
+  </div>
+
+  <!-- STAGE 4: ARCANA BOT ARCHIVE DECK -->
+  <div class="screen" id="screen4">
+    <div class="card">
+      <h1 class="title-header" style="font-size: 1.8rem;">
+        Welcome to the parlour, <span id="displayName" style="color: var(--pink-glow);">Guest</span>
+      </h1>
+      <div class="divider"></div>
+      
+      <div class="controls-bar">
+        <button class="btn-toggle-deck" id="toggleDeckBtn">Reveal All Cards ✦</button>
+      </div>
+
+      <div class="bot-grid">
+        <!-- 1. Killian -->
+        <div class="arcana-card" 
+             data-name="Killian" 
+             data-tag="The Stranger Behind the Wheel" 
+             data-desc="Unshakable and composed, hiding his emotional walls behind an icy layer of arrogance." 
+             data-img="https://i.postimg.cc/zvpHVk5L/Chat-GPT-Image-Oct-31-2026-02-43-57-PM.png" 
+             data-link="https://janitorai.com/characters/d6c06f5f-96ea-4cde-858a-c820269a16f1_character-killian-the-stranger-behind-the-wheel">
+          <div class="arcana-card-inner">
+            <div class="card-face card-back">
+              <div class="card-back-pattern">
+                <div class="card-back-symbol">❖</div>
+                <div class="card-back-text">Killian</div>
+              </div>
+            </div>
+            <div class="card-face card-front">
+              <img src="https://i.postimg.cc/zvpHVk5L/Chat-GPT-Image-Oct-31-2026-02-43-57-PM.png" class="bot-thumb" alt="Killian">
+              <div class="bot-name">Killian</div>
+              <div class="bot-tag">The Stranger Behind the Wheel</div>
+              <div class="bot-desc">Unshakable and composed, hiding his emotional walls behind an icy layer of arrogance.</div>
+              <div class="card-tap-hint">Tap to Inspect ✦</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Azrael -->
+        <div class="arcana-card" 
+             data-name="Azrael" 
+             data-tag="Till Death Do Us Part" 
+             data-desc="Morbid, gruff, and perpetually exhausted, secretly weak for gummy bears and reluctantly devoted." 
+             data-img="https://i.postimg.cc/ZRSWHQ51/Whats-App-Image-2026-10-20-at-14-47-23.jpg" 
+             data-link="https://janitorai.com/characters/ddc42d82-6781-4e89-9f87-6106a02c8ed2_character-azrael-till-death-do-us-part-second-intro-uploaded">
+          <div class="arcana-card-inner">
+            <div class="card-face card-back">
+              <div class="card-back-pattern">
+                <div class="card-back-symbol">❖</div>
+                <div class="card-back-text">Azrael</div>
+              </div>
+            </div>
+            <div class="card-face card-front">
+              <img src="https://i.postimg.cc/ZRSWHQ51/Whats-App-Image-2026-10-20-at-14-47-23.jpg" class="bot-thumb" alt="Azrael">
+              <div class="bot-name">Azrael</div>
+              <div class="bot-tag">Till Death Do Us Part</div>
+              <div class="bot-desc">Morbid, gruff, and perpetually exhausted, secretly weak for gummy bears and reluctantly devoted.</div>
+              <div class="card-tap-hint">Tap to Inspect ✦</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Nicolò -->
+        <div class="arcana-card" 
+             data-name="Nicolò" 
+             data-tag="Hostage Situation" 
+             data-desc="Ruthless and adrenaline-driven, governed by intense pride and a fierce competitive streak." 
+             data-img="https://i.postimg.cc/mrQDPSy1/Untitled-Project-(8).jpg" 
+             data-link="https://janitorai.com/characters/f90cbd05-0e18-4ef3-8b86-b7c26a76b96a_character-nicolo-benedetti-hostage-situation">
+          <div class="arcana-card-inner">
+            <div class="card-face card-back">
+              <div class="card-back-pattern">
+                <div class="card-back-symbol">❖</div>
+                <div class="card-back-text">Nicolò</div>
+              </div>
+            </div>
+            <div class="card-face card-front">
+              <img src="https://i.postimg.cc/mrQDPSy1/Untitled-Project-(8).jpg" class="bot-thumb" alt="Nicolò">
+              <div class="bot-name">Nicolò</div>
+              <div class="bot-tag">Hostage Situation</div>
+              <div class="bot-desc">Ruthless and adrenaline-driven, governed by intense pride and a fierce competitive streak.</div>
+              <div class="card-tap-hint">Tap to Inspect ✦</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Alexei -->
+        <div class="arcana-card" 
+             data-name="Alexei" 
+             data-tag="The Last of Us" 
+             data-desc="Distant, melancholic, and deeply conflicted, carrying a heavy weight of silent regret." 
+             data-img="https://i.postimg.cc/bY6vSrk9/Chat-GPT-Image-Sep-27-2026-08-56-24-PM.png" 
+             data-link="https://janitorai.com/characters/514338bc-2f49-4ee4-abf4-65966bfe7f0f_character-alexei-bellemonte-the-last-of-us">
+          <div class="arcana-card-inner">
+            <div class="card-face card-back">
+              <div class="card-back-pattern">
+                <div class="card-back-symbol">❖</div>
+                <div class="card-back-text">Alexei</div>
+              </div>
+            </div>
+            <div class="card-face card-front">
+              <img src="https://i.postimg.cc/bY6vSrk9/Chat-GPT-Image-Sep-27-2026-08-56-24-PM.png" class="bot-thumb" alt="Alexei">
+              <div class="bot-name">Alexei</div>
+              <div class="bot-tag">The Last of Us</div>
+              <div class="bot-desc">Distant, melancholic, and deeply conflicted, carrying a heavy weight of silent regret.</div>
+              <div class="card-tap-hint">Tap to Inspect ✦</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Cameron -->
+        <div class="arcana-card" 
+             data-name="Cameron" 
+             data-tag="Too Late" 
+             data-desc="Soft-spoken and nostalgic, quietly yearning for the past while completely oblivious to the present." 
+             data-img="https://i.postimg.cc/T1RqjfLH/Chat-GPT-Image-Oct-2-2026-02-29-53-AM.png" 
+             data-link="https://janitorai.com/characters/ad4167a8-a825-44aa-bac0-fd7295a90945_character-cameron-langford-too-late">
+          <div class="arcana-card-inner">
+            <div class="card-face card-back">
+              <div class="card-back-pattern">
+                <div class="card-back-symbol">❖</div>
+                <div class="card-back-text">Cameron</div>
+              </div>
+            </div>
+            <div class="card-face card-front">
+              <img src="https://i.postimg.cc/T1RqjfLH/Chat-GPT-Image-Oct-2-2026-02-29-53-AM.png" class="bot-thumb" alt="Cameron">
+              <div class="bot-name">Cameron</div>
+              <div class="bot-tag">Too Late</div>
+              <div class="bot-desc">Soft-spoken and nostalgic, quietly yearning for the past while completely oblivious to the present.</div>
+              <div class="card-tap-hint">Tap to Inspect ✦</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. Raffaele -->
+        <div class="arcana-card" 
+             data-name="Raffaele" 
+             data-tag="Me? Jealous? Definitely Not" 
+             data-desc="Arrogant, possessive, and wildly competitive, masking his jealousy with sharp antagonism." 
+             data-img="https://i.postimg.cc/brNkDgWV/Chat-GPT-Image-Oct-2-2026-02-31-13-AM.png" 
+             data-link="https://janitorai.com/characters/618b5a0e-b96d-4506-818b-9f782725942a_character-raffaele-valenti-me-jealous-definitely-not">
+          <div class="arcana-card-inner">
+            <div class="card-face card-back">
+              <div class="card-back-pattern">
+                <div class="card-back-symbol">❖</div>
+                <div class="card-back-text">Raffaele</div>
+              </div>
+            </div>
+            <div class="card-face card-front">
+              <img src="https://i.postimg.cc/brNkDgWV/Chat-GPT-Image-Oct-2-2026-02-31-13-AM.png" class="bot-thumb" alt="Raffaele">
+              <div class="bot-name">Raffaele</div>
+              <div class="bot-tag">Me? Jealous? Definitely Not</div>
+              <div class="bot-desc">Arrogant, possessive, and wildly competitive, masking his jealousy with sharp antagonism.</div>
+              <div class="card-tap-hint">Tap to Inspect ✦</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. Theodore -->
+        <div class="arcana-card" 
+             data-name="Theodore" 
+             data-tag="Your Childhood Rival" 
+             data-desc="Insufferably sharp-tongued and stubborn, hiding a soft, sentimental core behind continuous bickering." 
+             data-img="https://i.postimg.cc/rpJT6Z93/Chat-GPT-Image-Jul-30-2026-09-31-37-PM.png" 
+             data-link="https://janitorai.com/characters/7e411d45-b44e-4e9a-8194-64f13793fc6c_character-theodore-harrington-your-childhood-rival">
+          <div class="arcana-card-inner">
+            <div class="card-face card-back">
+              <div class="card-back-pattern">
+                <div class="card-back-symbol">❖</div>
+                <div class="card-back-text">Theodore</div>
+              </div>
+            </div>
+            <div class="card-face card-front">
+              <img src="https://i.postimg.cc/rpJT6Z93/Chat-GPT-Image-Jul-30-2026-09-31-37-PM.png" class="bot-thumb" alt="Theodore">
+              <div class="bot-name">Theodore</div>
+              <div class="bot-tag">Your Childhood Rival</div>
+              <div class="bot-desc">Insufferably sharp-tongued and stubborn, hiding a soft, sentimental core behind continuous bickering.</div>
+              <div class="card-tap-hint">Tap to Inspect ✦</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 8. Julian -->
+        <div class="arcana-card" 
+             data-name="Julian" 
+             data-tag="Out of Reach" 
+             data-desc="Stoic, disciplined, and fiercely protective, carrying the burden of an unspoken, forbidden longing." 
+             data-img="https://i.postimg.cc/2SdRv9Ms/Chat-GPT-Image-Jul-25-2026-02-58-19-AM.png" 
+             data-link="https://janitorai.com/characters/33d53676-6338-4d67-b542-cee501bb9d28_character-julian-ashcroft-out-of-reach">
+          <div class="arcana-card-inner">
+            <div class="card-face card-back">
+              <div class="card-back-pattern">
+                <div class="card-back-symbol">❖</div>
+                <div class="card-back-text">Julian</div>
+              </div>
+            </div>
+            <div class="card-face card-front">
+              <img src="https://i.postimg.cc/2SdRv9Ms/Chat-GPT-Image-Jul-25-2026-02-58-19-AM.png" class="bot-thumb" alt="Julian">
+              <div class="bot-name">Julian</div>
+              <div class="bot-tag">Out of Reach</div>
+              <div class="bot-desc">Stoic, disciplined, and fiercely protective, carrying the burden of an unspoken, forbidden longing.</div>
+              <div class="card-tap-hint">Tap to Inspect ✦</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 9. Lucien -->
+        <div class="arcana-card" 
+             data-name="Lucien" 
+             data-tag="You Married Your Rival" 
+             data-desc="Provocative and prideful, constantly testing boundaries until his begrudging affection slips through." 
+             data-img="https://i.postimg.cc/9MnvV6wt/Chat-GPT-Image-Jul-16-2026-09-26-44-PM.png" 
+             data-link="https://janitorai.com/characters/4e3b85d7-57e3-4540-9ec9-d16318d325f3_character-lucien-veyre-you-married-your-rival">
+          <div class="arcana-card-inner">
+            <div class="card-face card-back">
+              <div class="card-back-pattern">
+                <div class="card-back-symbol">❖</div>
+                <div class="card-back-text">Lucien</div>
+              </div>
+            </div>
+            <div class="card-face card-front">
+              <img src="https://i.postimg.cc/9MnvV6wt/Chat-GPT-Image-Jul-16-2026-09-26-44-PM.png" class="bot-thumb" alt="Lucien">
+              <div class="bot-name">Lucien</div>
+              <div class="bot-tag">You Married Your Rival</div>
+              <div class="bot-desc">Provocative and prideful, constantly testing boundaries until his begrudging affection slips through.</div>
+              <div class="card-tap-hint">Tap to Inspect ✦</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 10. Aurelius -->
+        <div class="arcana-card" 
+             data-name="Aurelius" 
+             data-tag="Sol Invictus │ Emperor" 
+             data-desc="Wry, perceptive, and effortlessly capable, navigating life in a state of perpetual exhaustion." 
+             data-img="https://i.postimg.cc/NGWjkVCD/Chat-GPT-Image-Jul-10-2026-01-51-46-PM.png" 
+             data-link="https://janitorai.com/characters/86a580e7-fcd2-45c2-a57e-621f7b46c6a3_character-aurelius-sol-invictus-solareth%E2%94%82-emperor">
+          <div class="arcana-card-inner">
+            <div class="card-face card-back">
+              <div class="card-back-pattern">
+                <div class="card-back-symbol">❖</div>
+                <div class="card-back-text">Aurelius</div>
+              </div>
+            </div>
+            <div class="card-face card-front">
+              <img src="https://i.postimg.cc/NGWjkVCD/Chat-GPT-Image-Jul-10-2026-01-51-46-PM.png" class="bot-thumb" alt="Aurelius">
+              <div class="bot-name">Aurelius</div>
+              <div class="bot-tag">Sol Invictus │ Emperor</div>
+              <div class="bot-desc">Wry, perceptive, and effortlessly capable, navigating life in a state of perpetual exhaustion.</div>
+              <div class="card-tap-hint">Tap to Inspect ✦</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 11. Silas -->
+        <div class="arcana-card" 
+             data-name="Silas" 
+             data-tag="Married to Your Rival" 
+             data-desc="Domineering yet entirely respectful, keeping his composure even when completely bewildered by you." 
+             data-img="https://i.postimg.cc/KYvGYy4S/Chat-GPT-Image-Jul-7-2026-01-20-19-AM.png" 
+             data-link="https://janitorai.com/characters/e4747428-41c3-4914-beb4-75acea0e828a_character-silas-vaughn-married-to-your-rival">
+          <div class="arcana-card-inner">
+            <div class="card-face card-back">
+              <div class="card-back-pattern">
+                <div class="card-back-symbol">❖</div>
+                <div class="card-back-text">Silas</div>
+              </div>
+            </div>
+            <div class="card-face card-front">
+              <img src="https://i.postimg.cc/KYvGYy4S/Chat-GPT-Image-Jul-7-2026-01-20-19-AM.png" class="bot-thumb" alt="Silas">
+              <div class="bot-name">Silas</div>
+              <div class="bot-tag">Married to Your Rival</div>
+              <div class="bot-desc">Domineering yet entirely respectful, keeping his composure even when completely bewildered by you.</div>
+              <div class="card-tap-hint">Tap to Inspect ✦</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 12. Caspian -->
+        <div class="arcana-card" 
+             data-name="Caspian" 
+             data-tag="Academic Rival" 
+             data-desc="Intellectual, argumentative, and sharp-tongued, using his quick wit as an antagonistic shield." 
+             data-img="https://i.postimg.cc/v86QTh8s/Chat-GPT-Image-Jul-4-2026-11-59-06-PM.png" 
+             data-link="https://janitorai.com/characters/b5a3df4d-b91c-4f47-9962-2c0ff5d93593_character-caspian-rhodes-i-academic-rival">
+          <div class="arcana-card-inner">
+            <div class="card-face card-back">
+              <div class="card-back-pattern">
+                <div class="card-back-symbol">❖</div>
+                <div class="card-back-text">Caspian</div>
+              </div>
+            </div>
+            <div class="card-face card-front">
+              <img src="https://i.postimg.cc/v86QTh8s/Chat-GPT-Image-Jul-4-2026-11-59-06-PM.png" class="bot-thumb" alt="Caspian">
+              <div class="bot-name">Caspian</div>
+              <div class="bot-tag">Academic Rival</div>
+              <div class="bot-desc">Intellectual, argumentative, and sharp-tongued, using his quick wit as an antagonistic shield.</div>
+              <div class="card-tap-hint">Tap to Inspect ✦</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 13. Asher -->
+        <div class="arcana-card" 
+             data-name="Asher" 
+             data-tag="Childhood Best Friend" 
+             data-desc="Charismatic, loyal, and deeply affectionate, bearing his long-suffering love with endless patience." 
+             data-img="https://i.postimg.cc/mrD4sN6T/Chat-GPT-Image-Jul-3-2026-02-50-03-AM.png" 
+             data-link="https://janitorai.com/characters/685402cf-e42a-4c46-a4d3-443f47fee655_character-asher-calloway-childhood-best-friend">
+          <div class="arcana-card-inner">
+            <div class="card-face card-back">
+              <div class="card-back-pattern">
+                <div class="card-back-symbol">❖</div>
+                <div class="card-back-text">Asher</div>
+              </div>
+            </div>
+            <div class="card-face card-front">
+              <img src="https://i.postimg.cc/mrD4sN6T/Chat-GPT-Image-Jul-3-2026-02-50-03-AM.png" class="bot-thumb" alt="Asher">
+              <div class="bot-name">Asher</div>
+              <div class="bot-tag">Childhood Best Friend</div>
+              <div class="bot-desc">Charismatic, loyal, and deeply affectionate, bearing his long-suffering love with endless patience.</div>
+              <div class="card-tap-hint">Tap to Inspect ✦</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 14. Lennox -->
+        <div class="arcana-card" 
+             data-name="Lennox" 
+             data-tag="It's Always Been You" 
+             data-desc="Serious, steadfast, and fiercely devoted, keeping his intense jealousy under quiet emotional restraint." 
+             data-img="https://i.postimg.cc/W1pLGwVN/Gemini-Generated-Image-jhjgc3jhjgc3jhjg.png" 
+             data-link="https://janitorai.com/characters/adaa259f-3f22-4052-a00d-d4eda109371b_character-lennox-hawthorne-its-always-been-you">
+          <div class="arcana-card-inner">
+            <div class="card-face card-back">
+              <div class="card-back-pattern">
+                <div class="card-back-symbol">❖</div>
+                <div class="card-back-text">Lennox</div>
+              </div>
+            </div>
+            <div class="card-face card-front">
+              <img src="https://i.postimg.cc/W1pLGwVN/Gemini-Generated-Image-jhjgc3jhjgc3jhjg.png" class="bot-thumb" alt="Lennox">
+              <div class="bot-name">Lennox</div>
+              <div class="bot-tag">It's Always Been You</div>
+              <div class="bot-desc">Serious, steadfast, and fiercely devoted, keeping his intense jealousy under quiet emotional restraint.</div>
+              <div class="card-tap-hint">Tap to Inspect ✦</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MAGNIFIED ARCANA MODAL OVERLAY -->
+  <div class="arcana-modal" id="arcanaModal">
+    <div class="modal-card-content">
+      <span class="modal-close-btn" id="modalCloseBtn">&times;</span>
+      <img src="" alt="Magnified Arcana" class="modal-img" id="modalImg">
+      <div class="modal-name" id="modalName">Character Name</div>
+      <div class="modal-tag" id="modalTag">Character Subtitle</div>
+      <div class="modal-desc" id="modalDesc">Character Description</div>
+      <a href="#" target="_blank" class="btn-modal-chat" id="modalChatBtn">Step into Story ✦</a>
+    </div>
+  </div>
+
+  <script>
+    const envelopeBtn = document.getElementById('envelopeBtn');
+    const toGatekeeperBtn = document.getElementById('toGatekeeperBtn');
+    const enterArchiveBtn = document.getElementById('enterArchiveBtn');
+    const visitorNameInput = document.getElementById('visitorNameInput');
+    const displayName = document.getElementById('displayName');
+
+    const screen1 = document.getElementById('screen1');
+    const screen2 = document.getElementById('screen2');
+    const screen3 = document.getElementById('screen3');
+    const screen4 = document.getElementById('screen4');
+
+    const allCards = document.querySelectorAll('.arcana-card');
+    const toggleDeckBtn = document.getElementById('toggleDeckBtn');
+    let allFlipped = false;
+
+    // Modal elements
+    const arcanaModal = document.getElementById('arcanaModal');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    const modalImg = document.getElementById('modalImg');
+    const modalName = document.getElementById('modalName');
+    const modalTag = document.getElementById('modalTag');
+    const modalDesc = document.getElementById('modalDesc');
+    const modalChatBtn = document.getElementById('modalChatBtn');
+
+    // 1. Envelope click -> IG Screen
+    envelopeBtn.addEventListener('click', () => {
+      envelopeBtn.classList.add('dissolve-out');
+      setTimeout(() => {
+        screen1.classList.remove('active');
+        screen2.classList.add('active');
+      }, 850);
+    });
+
+    // 2. IG Profile -> Gatekeeper Screen
+    toGatekeeperBtn.addEventListener('click', () => {
+      screen2.classList.remove('active');
+      screen3.classList.add('active');
+    });
+
+    // 3. Gatekeeper -> Main Arcana Parlour Deck
+    enterArchiveBtn.addEventListener('click', () => {
+      const name = visitorNameInput.value.trim();
+      displayName.textContent = name !== "" ? name : "Seeker";
+      screen3.classList.remove('active');
+      screen4.classList.add('active');
+    });
+
+    // 4. Arcana Deck Flip & Magnify Logic
+    allCards.forEach(card => {
+      card.addEventListener('click', () => {
+        if (!card.classList.contains('flipped')) {
+          card.classList.add('flipped');
+        } else {
+          // Open Magnified Modal if already flipped
+          modalImg.src = card.dataset.img;
+          modalName.textContent = card.dataset.name;
+          modalTag.textContent = card.dataset.tag;
+          modalDesc.textContent = card.dataset.desc;
+          modalChatBtn.href = card.dataset.link;
+          modalChatBtn.textContent = `Chat with ${card.dataset.name} ✦`;
+          arcanaModal.classList.add('active');
+        }
+      });
+    });
+
+    // Reveal All / Turn All Button
+    toggleDeckBtn.addEventListener('click', () => {
+      allFlipped = !allFlipped;
+      allCards.forEach(card => {
+        if (allFlipped) {
+          card.classList.add('flipped');
+        } else {
+          card.classList.remove('flipped');
+        }
+      });
+      toggleDeckBtn.textContent = allFlipped ? "Hide All Cards ✦" : "Reveal All Cards ✦";
+    });
+
+    // Close Modal Logic
+    modalCloseBtn.addEventListener('click', () => {
+      arcanaModal.classList.remove('active');
+    });
+
+    arcanaModal.addEventListener('click', (e) => {
+      if (e.target === arcanaModal) {
+        arcanaModal.classList.remove('active');
+      }
+    });
+  </script>
+</body>
+</html>
